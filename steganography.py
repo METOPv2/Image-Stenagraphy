@@ -37,10 +37,12 @@ def encode_data_to_image(image_copy=Image.Image, message=str):
     pixel_copy = list(pixel)
 
     channel_position = 0
+    pixel_count = 0
     (x, y) = 0, 0
 
     for byte in binary_data:
         for bit in byte:
+            bit = int(bit)
             channel = int(pixel[channel_position])
 
             if (is_even(bit) and is_odd(channel)) or (is_odd(bit) and is_even(channel)):
@@ -52,9 +54,13 @@ def encode_data_to_image(image_copy=Image.Image, message=str):
             if channel_position == 3:
                 image_copy.putpixel((x, y), tuple(pixel_copy))
                 channel_position = 0
+                pixel_count += 1
 
                 pixel = next(pixels_iter)
                 pixel_copy = list(pixel)
+
+                x = (pixel_count % image_size_x)
+                y = pixel_count // image_size_x
     
     # returned edited image
     return image_copy
@@ -105,14 +111,13 @@ def decode():
     step = 0
     while step < total_channels:
         channel = next(current_pixel_iter)
-        current_byte += str(int(channel) % 2)
+        current_byte += str(channel % 2)
 
         if (step + 1) % 3 == 0:
             current_pixel = next(image_pixels_iter)
             current_pixel_iter = iter(current_pixel)
         elif (step + 1) % 8 == 0:
             ascii = int(current_byte, 2)
-            print(ascii)
             char = chr(ascii)
             decoded_message = decoded_message + char if ascii != 183 else ""
             current_byte = ""
